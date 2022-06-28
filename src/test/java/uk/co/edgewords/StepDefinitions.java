@@ -9,12 +9,17 @@ import io.cucumber.java.en.When;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Assertions.*;
+import org.junit.platform.commons.function.Try;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import uk.co.edgewords.POMPages.HomePagePOM;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -23,12 +28,13 @@ import static org.hamcrest.CoreMatchers.*;
 
 public class StepDefinitions {
 
-    private static WebDriver driver;
-    private SharedDictionary sharedDict; //Field for shared dictonary to use in this class
+    private WebDriver driver; //This was defined as static and caused problems when running in parallel.
+    private final SharedDictionary sharedDict; //Field for shared dictionary to use in this class
 
     public StepDefinitions(SharedDictionary sharedDict) { //PicoContainer will instantiate sharedDict for us
-        driver = (WebDriver)sharedDict.readDict("webdriver");
+
         this.sharedDict = sharedDict; //Put the passed instance of sharedDict in the field.
+        driver = (WebDriver)sharedDict.readDict("webdriver");
     }
 
     @Then("^(?i)i am on the (?-i)Google homepage$") //Case insesitivity using RegEx
@@ -36,23 +42,20 @@ public class StepDefinitions {
     public void i_am_on_the_google_homepage() throws InterruptedException {
 
         driver.get("https://www.google.co.uk");
-        try{
-            driver.findElement(By.cssSelector("#L2AGLb > div")).click();
-        }
-        catch(Error e){
-            //Do nothing
-            //blah
-            //blah
-            //blah
-            //blah
-            //test ci
-            //Test ci
 
-
+        var iAgrees = driver.findElements(By.cssSelector("#L2AGLb > div"));
+        if(!iAgrees.isEmpty()){
+            iAgrees.get(0).click();
         }
 
+//        WebDriverWait mywait = new WebDriverWait(driver, Duration.ofSeconds(2));
+//        WebElement iAgree = mywait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("#L2AGLb > div")));
+//        iAgree.click();
 
-        Thread.sleep(1000);
+
+
+
+
         String bodyText = driver.findElement(By.tagName("body")).getText();
         sharedDict.addDict("capturedText",bodyText);
         Thread.sleep(1000);
